@@ -24,4 +24,3 @@ grep -q "^#*PasswordAuthentication" /etc/ssh/sshd_config || echo "PasswordAuthen
 sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 sed -i 's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
 sed -i "s/^#Port 22/Port ${PORT}/" /etc/ssh/sshd_config
-# rm $(readlink -f $0)

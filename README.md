@@ -4,16 +4,18 @@
 - alpine
   - 3.20
   - `edge`
-- ubuntu
-  - focal
-  - `jammy`
-  - noble
-  - `oracular`
+- centos
+  - `9-Stream`
 - debian
   - `bookworm`
   - bullseye
   - buster
   - trixie
+- ubuntu
+  - focal
+  - `jammy`
+  - noble
+  - `oracular`
 # Note:
 This module is only for armv8+       
 Tested only on the marked system versions, if there's any bugs, please report        

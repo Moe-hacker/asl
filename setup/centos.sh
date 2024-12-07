@@ -3,7 +3,6 @@ PORT=""
 rm -rf /etc/resolv.conf && touch /etc/resolv.conf
 echo "nameserver 1.1.1.1" >> /etc/resolv.conf
 echo "nameserver 114.114.114.114" >> /etc/resolv.conf
-echo "nameserver 2606:4700:4700::1111" >> /etc/resolv.conf
 groupadd -g 1000 aid_system 2>/dev/null || groupadd -g 1074 aid_system 2>/dev/null
 groupadd -g 1001 aid_radio
 groupadd -g 1002 aid_bluetooth
@@ -108,54 +107,15 @@ groupadd -g 99000 aid_isolated_start
 groupadd -g 99999 aid_isolated_end
 groupadd -g 100000 aid_user_offset
 usermod -a -G aid_system,aid_radio,aid_bluetooth,aid_graphics,aid_input,aid_audio,aid_camera,aid_log,aid_compass,aid_mount,aid_wifi,aid_adb,aid_install,aid_media,aid_dhcp,aid_sdcard_rw,aid_vpn,aid_keystore,aid_usb,aid_drm,aid_mdnsr,aid_gps,aid_media_rw,aid_mtp,aid_drmrpc,aid_nfc,aid_sdcard_r,aid_clat,aid_loop_radio,aid_media_drm,aid_package_info,aid_sdcard_pics,aid_sdcard_av,aid_sdcard_all,aid_logd,aid_shared_relro,aid_dbus,aid_tlsdate,aid_media_ex,aid_audioserver,aid_metrics_coll,aid_metricsd,aid_webserv,aid_debuggerd,aid_media_codec,aid_cameraserver,aid_firewall,aid_trunks,aid_nvram,aid_dns,aid_dns_tether,aid_webview_zygote,aid_vehicle_network,aid_media_audio,aid_media_video,aid_media_image,aid_tombstoned,aid_media_obb,aid_ese,aid_ota_update,aid_automotive_evs,aid_lowpan,aid_hsm,aid_reserved_disk,aid_statsd,aid_incidentd,aid_secure_element,aid_lmkd,aid_llkd,aid_iorapd,aid_gpu_service,aid_network_stack,aid_shell,aid_cache,aid_diag,aid_oem_reserved_start,aid_oem_reserved_end,aid_net_bt_admin,aid_net_bt,aid_inet,aid_net_raw,aid_net_admin,aid_net_bw_stats,aid_net_bw_acct,aid_readproc,aid_wakelock,aid_uhid,aid_everybody,aid_misc,aid_nobody,aid_app_start,aid_app_end,aid_cache_gid_start,aid_cache_gid_end,aid_ext_gid_start,aid_ext_gid_end,aid_ext_cache_gid_start,aid_ext_cache_gid_end,aid_shared_gid_start,aid_shared_gid_end,aid_isolated_start,aid_isolated_end,aid_user_offset root 2>/dev/null
+usermod -g aid_inet _apt 2>/dev/null
 echo "root:${PASSWORD}" | chpasswd
-sed -i "/^CheckSpace/s/^/#/" /etc/pacman.conf
-sed -i "/^#IgnorePkg/a\IgnorePkg = linux-aarch64 linux-firmware" /etc/pacman.conf
-cat > /etc/pacman.d/mirrorlist <<-'EndOfArchMirrors'
-## Archlinux arm
-Server = https://mirror.archlinuxarm.org/$arch/$repo
-## Server = https://mirrors.ustc.edu.cn/archlinuxarm/$arch/$repo
-## Server = https://mirrors.bfsu.edu.cn/archlinuxarm/$arch/$repo
-## Server = https://mirrors.tuna.tsinghua.edu.cn/archlinuxarm/$arch/$repo
-## Server = https://mirrors.163.com/archlinuxarm/$arch/$repo
-EndOfArchMirrors
-cat >>/etc/pacman.conf <<-'Endofpacman1'
-[arch4edu]
-Server = https://mirrors.bfsu.edu.cn/arch4edu/$arch
-Server = https://mirrors.tuna.tsinghua.edu.cn/arch4edu/$arch
-Server = https://mirror.autisten.club/arch4edu/$arch
-Server = https://arch4edu.keybase.pub/$arch
-Server = https://mirror.lesviallon.fr/arch4edu/$arch
-Server = https://mirrors.tencent.com/arch4edu/$arch
-SigLevel = Never
-Endofpacman1
-cat >>/etc/pacman.conf <<-'Endofpacman2'
-[archlinuxcn]
-Server = https://mirrors.bfsu.edu.cn/archlinuxcn/$arch
-Server = https://mirrors.tuna.tsinghua.edu.cn/archlinuxcn/$arch
-Server = https://repo.archlinuxcn.org/$arch
-SigLevel = Never
-Endofpacman2
-pacman-key --init
-pacman-key --populate archlinuxarm
-pacman -Sy --noconfirm archlinux-keyring archlinuxarm-keyring
-pacman -Rs linux-aarch64 linux-firmware --noconfirm
-pacman -Syu --noconfirm
-pacman -Sy --noconfirm --needed openssh
-# When packaging a software package (such as an AUR package) using `makepkg`, you may encounter an issue where the system cannot enter the fakeroot environment because it is not started by systemd and does not have SYSV pipes and message queues
-# To resolve this issue, download the appropriate `fakeroot-tcp` for your system =>>https://pkgs.org/download/fakeroot-tcp
-# pacman -S --overwrite '*' yay     # It is necessary to compile `archlinuxcn-keyring` by yourself
-# sed -i "/^# *%wheel *ALL=(ALL:ALL) ALL$/s/^# *//" /etc/sudoers
-sed -i "s/^#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
-sed -i "s/^#PasswordAuthentication.*/PasswordAuthentication yes/" /etc/ssh/sshd_config
-sed -i "s/^UsePAM yes/UsePAM no/" /etc/ssh/sshd_config
-sed -i "s/^#Port 22/Port 22/" /etc/ssh/sshd_config
+yum update -y
+yum install -y openssh-server
+yum clean all
+sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -i 's/^#PasswordAuthentication/PasswordAuthentication/' /etc/ssh/sshd_config
+sed -i 's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+sed -i "s/^#Port 22/Port ${PORT}/" /etc/ssh/sshd_config
 ln -s /usr/local/lib/servicectl/serviced /usr/bin/serviced
 ln -s /usr/local/lib/servicectl/servicectl /usr/bin/servicectl
-# ln -s /usr/lib/systemd/system/sshd.service /usr/local/lib/servicectl/enabled/sshd.service
-# if grep -q "java" /usr/local/lib/servicectl/enabled/sshd.service; then
-#     rm -f /usr/local/lib/servicectl/enabled/sshd.service
-#     echo "/usr/lib/systemd/system/sshd.service" > /usr/local/lib/servicectl/enabled/sshd.service
-#     # cat /usr/lib/systemd/system/sshd.service > /usr/local/lib/servicectl/enabled/sshd.service
-# fi
 ssh-keygen -A

@@ -1,6 +1,6 @@
 id=asl
 name=Android Subsystem for GNU/Linux
-version=v0.0.1
-versionCode=202411
+version=v0.0.2
+versionCode=202412
 author=Moe-hacker
 description=Android Subsystem for GNU/Linux Powered by ruri

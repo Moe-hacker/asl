@@ -13,8 +13,9 @@ bootinspect() {
         ui_print "- Install from Magisk"
         ui_print "- Magisk Version：$MAGISK_VER（App）+ $MAGISK_VER_CODE"
     else
-        ui_print "- Unsupported installation mode. Please install from the application (Magisk/KernelSu/Apatch)"
+        abort "- Unsupported installation mode. Please install from the application (Magisk/KernelSu/Apatch)"
     fi
+    [ "$ARCH" != "arm64" ] && abort "- Unsupported platform: $ARCH" || ui_print "- Device platform: $ARCH"
 }
 
 link_busybox() {
@@ -61,32 +62,35 @@ configuration() {
 
     export PATH="$MODPATH/bin:$PATH"
 
-    if [[ -e $CONTAINER_DIR/* ]]; then
+    if [[ -d $CONTAINER_DIR ]]; then
         ui_print "- Already installed"
         ruri -U "$CONTAINER_DIR"
-        rm -rf "$CONTAINER_DIR"
-        ui_print "- Uninstall the container and clean up related directories and files"
+        mv -f "$CONTAINER_DIR" "$CONTAINER_DIR".old
+        ui_print "- Shut down the container and back up the relevant directories and files to the ${RURIMA_LXC_OS}.old"
     fi
 }
 
 automatic() {
     ui_print "- A network connection is required to download the root filesystem. Please connect to WiFi before installation whenever possible"
     ui_print "- Downloading the root filesystem using the source ${RURIMA_LXC_MIRROR}..."
+
     rurima lxc pull -n -m ${RURIMA_LXC_MIRROR} -o ${RURIMA_LXC_OS} -v ${RURIMA_LXC_OS_VERSION} -s "$CONTAINER_DIR"
+
     ui_print "- Starting the chroot environment to perform automated installation..."
     ui_print "- Please ensure the network environment is stable. The process may take some time, so please be patient!"
     ui_print ""
     sleep 3
     echo "$HOSTNAME" >"$CONTAINER_DIR"/etc/hostname
-    mkdir "$CONTAINER_DIR"/tmp >/dev/null 2>&1
+    mkdir -p "$CONTAINER_DIR"/tmp "$CONTAINER_DIR"/usr/local/lib/servicectl/enabled >/dev/null 2>&1
     cp "$MODPATH/setup/${RURIMA_LXC_OS}.sh" "$CONTAINER_DIR"/tmp/setup.sh
-    chmod 777 "$CONTAINER_DIR"/tmp/setup.sh
+    cp -r "$MODPATH"/setup/servicectl/* "$CONTAINER_DIR"/usr/local/lib/servicectl/
+    chmod 777 "$CONTAINER_DIR"/tmp/setup.sh "$CONTAINER_DIR"/usr/local/lib/servicectl/servicectl "$CONTAINER_DIR"/usr/local/lib/servicectl/serviced
     sed -i "s/PASSWORD=\"\"/PASSWORD=\"$PASSWORD\"/g" "$CONTAINER_DIR"/tmp/setup.sh
     sed -i "s/PORT=\"\"/PORT=\"$PORT\"/g" "$CONTAINER_DIR"/tmp/setup.sh
+
     ruri "$CONTAINER_DIR" /bin/"$SHELL" /tmp/setup.sh
 
     inotifyfile
-
     #rm "$CONTAINER_DIR"/tmp/setup.sh
     ui_print "- Automated installation completed!"
     ui_print "- Note: Please change the default password. Exposing an SSH port with password authentication instead of key-based authentication is always a high-risk behavior!"

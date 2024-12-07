@@ -24,4 +24,4 @@ fi
 [ "$PRIVILEGED" = "true" ] && ARGS="$ARGS -p"
 [ "$RUNTIME" = "true" ] && ARGS="$ARGS -S"
 
-ruri $ARGS $CONTAINER_DIR /bin/$SHELL -c "$START_SERVICES"
+ruri $ARGS $CONTAINER_DIR /bin/$SHELL -c "$START_SERVICES" &

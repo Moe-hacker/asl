@@ -112,11 +112,11 @@ usermod -a -G aid_inet,aid_net_raw portage 2>/dev/null
 echo "root:${PASSWORD}" | chpasswd
 export DEBIAN_FRONTEND=noninteractive
 apt update
-apt install -y openssh-server sudo
+apt install -y openssh-server
 apt autoclean
 sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 sed -i 's/^#PasswordAuthentication/PasswordAuthentication/' /etc/ssh/sshd_config
 sed -i 's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
 sed -i "s/^#Port 22/Port ${PORT}/" /etc/ssh/sshd_config
 sed -i "s/\$PORT/${PORT}/g" /etc/ssh/sshd_config
-sed -i '/^#.*%wheel ALL=(ALL) ALL/ s/^#//' /etc/sudoers
+# sed -i '/^#.*%wheel ALL=(ALL) ALL/ s/^#//' /etc/sudoers
